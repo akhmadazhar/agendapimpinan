@@ -26,18 +26,18 @@ function registrasi($data)
 
     $NAMAFILE = $_FILES['gambar']['name'];
     $NAMATMP = $_FILES['gambar']['tmp_name'];
-    $FOLDER = "image/".$NAMAFILE;
+    $FOLDER = "image/" . $NAMAFILE;
 
     $password = password_hash($password, PASSWORD_DEFAULT);
-    if (move_uploaded_file($NAMATMP, $FOLDER)){
+    if (move_uploaded_file($NAMATMP, $FOLDER)) {
         mysqli_query($conn, "insert into users values('', '$username', '$password', '$FOLDER')");
-    }
-    else{
+    } else {
         echo "PILIH FILE";
     }
 
     return mysqli_affected_rows($conn);
 }
+
 
 function tambahagenda($data)
 {
@@ -51,13 +51,61 @@ function tambahagenda($data)
     $status = "Diajukan";
     $pesan = $data['pesan'];
     date_default_timezone_set("Asia/Makassar");
-    $timestamp = date("m/d/Y - H:i");
+    $timestamp = date("Y-m-d - H:i");
+    $file_undangan = uploadFileUndangan();
 
-    mysqli_query($conn, "insert into agenda values('$id', '$nik_pegawai', '$judul', '$deskripsi', '$tanggal', '$lokasi', '$status', '$timestamp')");
+    // Hitung selisih hari antara tanggal sekarang dan tanggal input
+    $selisih_hari = ceil((strtotime($tanggal) - time()) / (60 * 60 * 24));
+
+    if ($selisih_hari < 3) {
+        $status = "Selesai";
+        // Tambahkan 3 hari ke tanggal selesai
+        $tanggal_selesai = date("Y-m-d");
+        $kesimpulan = "";
+    } else {
+        $status = "Diajukan";
+        $tanggal_selesai = null; // Tidak ada tanggal selesai jika status masih "Diajukan"
+        $kesimpulan = "";
+    }
+
+    // Handle unggah file undangan
+    $file_undangan = uploadFileUndangan(); // Fungsi untuk mengelola unggahan file, lihat catatan di bawah
+
+    mysqli_query($conn, "INSERT INTO agenda VALUES('$id', '$nik_pegawai', '$judul', '$deskripsi', '$tanggal', '$lokasi', '$status', '$timestamp', '$tanggal_selesai', '$kesimpulan', '$file_undangan')");
     mysqli_query($conn, "insert into permohonan values(NULL, '$id', '$nik_pegawai', '$pesan')");
     mysqli_query($conn, "insert into undangan values(NULL, '$id', '$nik_pegawai')");
 
+    mysqli_query($conn, "INSERT INTO hasil (id_agenda, tanggal_selesai, kesimpulan) VALUES ('$id', '$tanggal_selesai', '$kesimpulan')");
+
     return mysqli_affected_rows($conn);
+}
+
+function uploadFileUndangan()
+{
+    $targetDir = "uploads/"; // Direktori untuk menyimpan file undangan (pastikan direktori ini sudah ada)
+    $targetFile = $targetDir . basename($_FILES["file_undangan"]["name"]);
+    $uploadOk = 1;
+    $fileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+
+    // Check if file is a valid image or PDF
+    if ($fileType != "pdf" && !getimagesize($_FILES["file_undangan"]["tmp_name"])) {
+        echo "File harus berupa gambar atau PDF.";
+        $uploadOk = 0;
+    }
+
+    // Check file size
+    if ($_FILES["file_undangan"]["size"] > 5000000) {
+        echo "Ukuran file terlalu besar.";
+        $uploadOk = 0;
+    }
+
+    // Upload file jika semua valid
+    if ($uploadOk == 1) {
+        move_uploaded_file($_FILES["file_undangan"]["tmp_name"], $targetFile);
+        return $targetFile;
+    } else {
+        return null; // Mengembalikan null jika upload gagal
+    }
 }
 function deleteagenda($data)
 {
@@ -95,15 +143,14 @@ function tambahpegawai($data)
 
     $NAMAFILE = $_FILES['gambar']['name'];
     $NAMATMP = $_FILES['gambar']['tmp_name'];
-    $FOLDER = "../image/".$NAMAFILE;
+    $FOLDER = "../image/" . $NAMAFILE;
 
-    if (move_uploaded_file($NAMATMP, $FOLDER)){
+    if (move_uploaded_file($NAMATMP, $FOLDER)) {
         mysqli_query($conn, "insert into pegawai values(NULL, '$nik', '$nama', '$email', '$id_jabatan', '$username', '$password', 'image/$NAMAFILE')");
-    }
-    else{
+    } else {
         echo "PILIH FILE";
     }
-    
+
 
     return mysqli_affected_rows($conn);
 }
@@ -130,12 +177,11 @@ function editpegawai($data)
 
     $NAMAFILE = $_FILES['gambar']['name'];
     $NAMATMP = $_FILES['gambar']['tmp_name'];
-    $FOLDER = "../image/".$NAMAFILE;
+    $FOLDER = "../image/" . $NAMAFILE;
 
-    if (move_uploaded_file($NAMATMP, $FOLDER)){
+    if (move_uploaded_file($NAMATMP, $FOLDER)) {
         mysqli_query($conn, "update pegawai set nik='$nik', nama='$nama', email='$email', id_jabatan='$id_jabatan', username='$username', password='$password', foto='image/$NAMAFILE' where id='$id'");
-    }
-    else{
+    } else {
         mysqli_query($conn, "update pegawai set nik='$nik', nama='$nama', email='$email', id_jabatan='$id_jabatan', username='$username', password='$password' where id='$id'");
     }
     return mysqli_affected_rows($conn);
@@ -144,10 +190,11 @@ function editpegawai($data)
 function tambahjabatan($data)
 {
     global $conn;
+    $id = $data['id_jabatan'];
     $nama_jabatan = $data['nama_jabatan'];
     $level = $data['level'];
 
-    mysqli_query($conn, "insert into jabatan values(NULL, '$nama_jabatan', '$level')");
+    mysqli_query($conn, "insert into jabatan values('$id', '$nama_jabatan', '$level')");
 
     return mysqli_affected_rows($conn);
 }
@@ -179,7 +226,7 @@ function deleteAjuan($data)
     global $conn;
 
     $id = $data['id'];
-    
+
     $data = mysqli_query($conn, "select * from permohonan where id='$id'");
     $result = mysqli_fetch_assoc($data);
     $id_agenda = $result['id_agenda'];
@@ -207,20 +254,22 @@ function disposisikan($data)
 
     $id_agenda = $data['id_agenda'];
     $id_permohonan = $data['id_permohonan'];
-    
+
     $nik_pegawai = $data['nik_pegawai'];
     $nik_perwakilan = $data['nik_perwakilan'];
     $catatan = $data['catatan'];
 
     date_default_timezone_set("Asia/Makassar");
-    $timestamp = date("m/d/Y - H:i");
+    $timestamp = date(("Y-m-d - H:i"));
 
     $data1 = mysqli_query($conn, "select * from pegawai where nik = '$nik_pegawai'");
-    $hasil1 = mysqli_fetch_assoc($data1); $pegawai_before = $hasil1['nama'];
+    $hasil1 = mysqli_fetch_assoc($data1);
+    $pegawai_before = $hasil1['nama'];
     $data2 = mysqli_query($conn, "select * from pegawai where nik = '$nik_perwakilan'");
-    $hasil2 = mysqli_fetch_assoc($data2); $pegawai_after = $hasil2['nama'];
+    $hasil2 = mysqli_fetch_assoc($data2);
+    $pegawai_after = $hasil2['nama'];
 
-    mysqli_query($conn, "update agenda set nik_pegawai='$nik_perwakilan', status='Didisposisikan' where id_agenda='$id_agenda'");
+    mysqli_query($conn, "update agenda set nik_pegawai='$nik_perwakilan' where id_agenda='$id_agenda'");
     mysqli_query($conn, "insert into permohonan values(NULL, '$id_agenda', '$nik_perwakilan', '$catatan')");
     mysqli_query($conn, "insert into disposisi values(NULL, '$id_agenda', '$pegawai_before', '$pegawai_after', '$catatan', '$timestamp')");
     mysqli_query($conn, "insert into undangan values(NULL, '$id_agenda', '$nik_perwakilan')");
@@ -235,7 +284,7 @@ function selesaiRapat($data)
 
     $kesimpulan = $data['kesimpulan'];
     $id_agenda = $data['id_agenda'];
-    $timestamp = date("m/d/Y");
+    $timestamp = date(("Y-m-d"));
 
     mysqli_query($conn, "insert into hasil values(NULL, '$id_agenda', '$timestamp', '$kesimpulan')");
     mysqli_query($conn, "update agenda set status='Selesai' where id_agenda='$id_agenda'");

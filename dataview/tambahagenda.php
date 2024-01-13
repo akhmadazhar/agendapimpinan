@@ -31,7 +31,8 @@ if (isset($_POST["tambah"])) {
 </head>
 
 <body>
-    <button class="btn btn-outline-secondary btn-sm" onclick="history.back()"><i class='bx bx-arrow-back'></i></button><br><br>
+    <button class="btn btn-outline-secondary btn-sm" onclick="history.back()"><i
+            class='bx bx-arrow-back'></i></button><br><br>
     <form action="" method="post">
         <div class="mb-3">
             <label for="exampleFormControlInput1" class="form-label">NAMA PIMPINAN</label>
@@ -40,7 +41,8 @@ if (isset($_POST["tambah"])) {
                 <?php
                 $data = mysqli_query($conn, "select *, jabatan.* from pegawai inner join jabatan on pegawai.id_jabatan = jabatan.id_jabatan");
                 foreach ($data as $row) { ?>
-                    <option value="<?php echo $row['nik']; ?>"><?php echo $row['nama']; ?> - <?php echo $row['nama_jabatan']; ?></option>
+                <option value="<?php echo $row['nik']; ?>"><?php echo $row['nama']; ?> -
+                    <?php echo $row['nama_jabatan']; ?></option>
                 <?php } ?>
             </select>
         </div>
@@ -63,6 +65,11 @@ if (isset($_POST["tambah"])) {
         <div class="mb-3">
             <label for="exampleFormControlInput1" class="form-label">PESAN</label>
             <input name="pesan" type="text" class="form-control" id="validationDefault01" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="exampleFormControlInput1" class="form-label">UNDANGAN (PDF atau Gambar)</label>
+            <input name="file_undangan" type="file" class="form-control" accept=".pdf, .jpg, .jpeg, .png" required>
         </div>
 
         <div class="d-grid gap-2">
