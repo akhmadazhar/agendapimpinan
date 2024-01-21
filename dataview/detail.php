@@ -1,4 +1,4 @@
-<?php ob_start(); 
+<?php ob_start();
 include 'header.php';
 include "../function.php";
 
@@ -71,9 +71,23 @@ if (isset($_GET["id_agenda"])) {
                 <th>STATUS</th>
                 <td>: <?php echo $k['status']; ?></td>
             </tr>
+            <tr>
+                <th>FILE UNDANGAN</th>
+                <td>
+                    <?php if ($k['file_undangan']) : ?>
+                        <a href="<?php echo $k['file_undangan']; ?>" target="_blank">
+                            <button class="btn btn-primary btn-sm">View PDF</button>
+                        </a>
+                    <?php else : ?>
+                        Tidak ada file undangan.
+                    <?php endif; ?>
+                </td>
+            </tr>
         </table>
         <br>
-        <table class="table" <?php if($k['status']!='Selesai'){echo "hidden"; }?>>
+        <table class="table" <?php if ($k['status'] != 'Selesai') {
+                                    echo "hidden";
+                                } ?>>
             <tr>
                 <th>TANGGAL SELESAI</th>
                 <td>: <?php echo $k2['tanggal_selesai']; ?></td>
@@ -84,10 +98,12 @@ if (isset($_GET["id_agenda"])) {
             </tr>
         </table>
 
-        <?php 
-            $data = mysqli_query($conn, "select * from disposisi where disposisi.id_agenda = $id");
+        <?php
+        $data = mysqli_query($conn, "select * from disposisi where disposisi.id_agenda = $id");
         ?>
-        <div class="row" <?php if(mysqli_num_rows($data) < 1) { echo'hidden'; } ?>>
+        <div class="row" <?php if (mysqli_num_rows($data) < 1) {
+                                echo 'hidden';
+                            } ?>>
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
@@ -99,7 +115,8 @@ if (isset($_GET["id_agenda"])) {
                                 while ($item = mysqli_fetch_array($data)) {
                                 ?>
                                     <li class="event" data-date="<?php echo $item['timestamp']; ?>">
-                                        <h3><?php echo $item['pegawai_before']; ?> → <?php echo $item['pegawai_after']; ?></h3>
+                                        <h3><?php echo $item['pegawai_before']; ?> → <?php echo $item['pegawai_after']; ?>
+                                        </h3>
                                         <p>Catatan : <?php echo $item['catatan']; ?></p>
                                     </li>
                                 <?php

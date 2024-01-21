@@ -35,6 +35,12 @@ if (isset($_GET["id_agenda"])) {
     <div class="d-grid gap-2">
         <button onclick="show()" class="btn btn-secondary btn-sm"><i class='bx bx-calendar nav_icon'></i> </button>
     </div><br>
+    <div class="filter-buttons">
+        <button class="btn btn-primary btn-sm" onclick="filterStatus('Selesai')">Tampilkan Selesai</button>
+        <button class="btn btn-warning btn-sm" onclick="filterStatus('Diajukan')">Tampilkan Diajukan</button>
+        <button class="btn btn-secondary btn-sm" onclick="filterStatus('')">Tampilkan Semua</button>
+    </div>
+
     <div class="table-responsive" id="the-table">
         <table id="example" class="table table-striped border-light-subtle">
             <thead>
@@ -55,14 +61,15 @@ if (isset($_GET["id_agenda"])) {
                 //$dataa = mysqli_query($conn, "select *, pegawai.nama from agenda INNER JOIN pegawai ON agenda.nik_pegawai = pegawai.nik where nik_pegawai='$user' and status='Dilaksanakan'");
                 $data = mysqli_query($conn, "select *, agenda.*, pegawai.nama from undangan INNER JOIN agenda ON undangan.id_agenda = agenda.id_agenda INNER JOIN pegawai ON undangan.nik_pegawai = pegawai.nik where undangan.nik_pegawai='$user' and agenda.nik_pegawai!='$user' and status!='Selesai' or undangan.nik_pegawai='$user' and agenda.nik_pegawai='$user' and status='Dilaksanakan'");
                 while ($row = mysqli_fetch_array($data)) { ?>
-                    <tr>
-                        <td><?php echo $row['id_agenda']; ?></td>
-                        <td><?php echo $row['judul']; ?></td>
-                        <td><?php echo $row['deskripsi']; ?></td>
-                        <td><?php echo $row['tanggal']; ?></td>
-                        <td><?php echo $row['status']; ?></td>
-                        <td><a href="?page=detailagenda&id_agenda=<?php echo $row['id_agenda']; ?>" class="btn btn-sm btn-primary">Detail</a>
-                    </tr>
+                <tr>
+                    <td><?php echo $row['id_agenda']; ?></td>
+                    <td><?php echo $row['judul']; ?></td>
+                    <td><?php echo $row['deskripsi']; ?></td>
+                    <td><?php echo $row['tanggal']; ?></td>
+                    <td><?php echo $row['status']; ?></td>
+                    <td><a href="?page=detailagenda&id_agenda=<?php echo $row['id_agenda']; ?>"
+                            class="btn btn-sm btn-primary">Detail</a>
+                </tr>
                 <?php }
                 ?>
             </tbody>
@@ -77,48 +84,59 @@ if (isset($_GET["id_agenda"])) {
 </body>
 
 <script>
-    let mode = 1;
-    $("#the-table").show();
-    $("#the-calendar").hide();
+function filterStatus(status) {
+    var table = $('#example').DataTable();
 
-    function show() {
+    // Reset semua filter sebelumnya
+    table.columns().search('').draw();
 
-        if (mode == 1) {
-            $("#the-calendar").show();
-            $("#the-table").hide();
-            mode = 2;
-        } else {
-            $("#the-calendar").hide();
-            $("#the-table").show();
-            mode = 1;
-        }
+    if (status !== '') {
+        table.column(4).search(status).draw();
     }
+}
 
-    $(document).ready(function() {
-        $('#calendar').fullCalendar({
-            header: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'month,agendaWeek,agendaDay'
-            },
-            defaultView: 'month',
-            editable: false,
-            events: [
-                <?php
+let mode = 1;
+$("#the-table").show();
+$("#the-calendar").hide();
+
+function show() {
+
+    if (mode == 1) {
+        $("#the-calendar").show();
+        $("#the-table").hide();
+        mode = 2;
+    } else {
+        $("#the-calendar").hide();
+        $("#the-table").show();
+        mode = 1;
+    }
+}
+
+$(document).ready(function() {
+    $('#calendar').fullCalendar({
+        header: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'month,agendaWeek,agendaDay'
+        },
+        defaultView: 'month',
+        editable: false,
+        events: [
+            <?php
                 $data = mysqli_query($conn, "select *, agenda.*, pegawai.nama from undangan INNER JOIN agenda ON undangan.id_agenda = agenda.id_agenda INNER JOIN pegawai ON undangan.nik_pegawai = pegawai.nik where undangan.nik_pegawai='$user' and agenda.nik_pegawai!='$user' and status!='Selesai' or undangan.nik_pegawai='$user' and agenda.nik_pegawai='$user' and status='Dilaksanakan'");
 
                 while ($k = mysqli_fetch_array($data)) {
                     $title = $k['judul'];
                     $start = $k['tanggal']; // This should be a valid date format (e.g., '2023-11-03').
                 ?> {
-                        title: '<?php echo $title; ?>',
-                        start: '<?php echo $start; ?>',
-                        url: "?page=detailagenda&id_agenda='<?php echo $k['id_agenda']; ?>'" // Optional, if you want to link to details.
-                    },
-                <?php } ?>
-            ]
-        });
+                title: '<?php echo $title; ?>',
+                start: '<?php echo $start; ?>',
+                url: "?page=detailagenda&id_agenda='<?php echo $k['id_agenda']; ?>'" // Optional, if you want to link to details.
+            },
+            <?php } ?>
+        ]
     });
+});
 </script>
 
 </html>

@@ -43,7 +43,9 @@ $k2 = mysqli_fetch_assoc($query1);
 
 <body>
     <div class="container">
-        <div class="text-center"><h3>DETAIL AGENDA</h3></div><br>
+        <div class="text-center">
+            <h3>DETAIL AGENDA</h3>
+        </div><br>
         <table class="table">
             <tr>
                 <th>JUDUL AGENDA</th>
@@ -73,6 +75,18 @@ $k2 = mysqli_fetch_assoc($query1);
                 <th>STATUS</th>
                 <td>: <?php echo $k['status']; ?></td>
             </tr>
+            <tr>
+                <th>FILE UNDANGAN</th>
+                <td>
+                    <?php if ($k['file_undangan']) : ?>
+                    <a href="<?php echo $k['file_undangan']; ?>" target="_blank">
+                        <button class="btn btn-primary btn-sm">View PDF</button>
+                    </a>
+                    <?php else : ?>
+                    Tidak ada file undangan.
+                    <?php endif; ?>
+                </td>
+            </tr>
         </table>
 
         <table class="table" <?php if($k['status']!='Selesai'){echo "hidden"; }?>>
@@ -92,23 +106,26 @@ $k2 = mysqli_fetch_assoc($query1);
         $pegawai = mysqli_fetch_assoc($datax);
         ?>
 
-        <form action="" method="post" <?php if($k['status']=='Dilaksanakan' || $k['status']=='Selesai' || $k['nik_pegawai']!=$pegawai['nik']){echo "hidden"; }?>>
-        <div class="d-grid gap-2">
-            <input type="hidden" name="id_permohonan" value="<?php echo $id_permohonan; ?>">
-            <input type="hidden" name="id_agenda" value="<?php echo $k['id_agenda']; ?>">
-            <button name="btn_verifikasi" class="btn btn-outline-secondary btn-sm">Verifikasi kehadiran</button>
-            <a href="?page=disposisikan&id_agenda=<?php echo $k['id_agenda']; ?>&id_permohonan=<?php echo $id_permohonan; ?>" class="btn btn-outline-secondary btn-sm">Disposisikan</a>
-        </div>
-    </form>
-    
-    <form action="" method="post" <?php if($k['status']!='Dilaksanakan' || $k['nik_pegawai']!=$pegawai['nik']){echo "hidden"; }?>>
-    <h3>Kesimpulan</h3>
-    <div class="d-grid gap-2">
-            <input type="hidden" name="id_agenda" value="<?php echo $k['id_agenda']; ?>">
-            <textarea name="kesimpulan"></textarea>
-            <button name="btn_selesai" class="btn btn-outline-secondary btn-sm">Selesai</button>
-    </div>
-    </form>
+        <form action="" method="post"
+            <?php if($k['status']=='Dilaksanakan' || $k['status']=='Selesai' || $k['nik_pegawai']!=$pegawai['nik']){echo "hidden"; }?>>
+            <div class="d-grid gap-2">
+                <input type="hidden" name="id_permohonan" value="<?php echo $id_permohonan; ?>">
+                <input type="hidden" name="id_agenda" value="<?php echo $k['id_agenda']; ?>">
+                <button name="btn_verifikasi" class="btn btn-outline-secondary btn-sm">Verifikasi kehadiran</button>
+                <a href="?page=disposisikan&id_agenda=<?php echo $k['id_agenda']; ?>&id_permohonan=<?php echo $id_permohonan; ?>"
+                    class="btn btn-outline-secondary btn-sm">Disposisikan</a>
+            </div>
+        </form>
+
+        <form action="" method="post"
+            <?php if($k['status']!='Dilaksanakan' || $k['nik_pegawai']!=$pegawai['nik']){echo "hidden"; }?>>
+            <h3>Kesimpulan</h3>
+            <div class="d-grid gap-2">
+                <input type="hidden" name="id_agenda" value="<?php echo $k['id_agenda']; ?>">
+                <textarea name="kesimpulan"></textarea>
+                <button name="btn_selesai" class="btn btn-outline-secondary btn-sm">Selesai</button>
+            </div>
+        </form>
 
     </div>
     <div class="container">
@@ -117,18 +134,19 @@ $k2 = mysqli_fetch_assoc($query1);
         ?>
         <div class="row" <?php if(mysqli_num_rows($data) < 1) { echo'hidden'; } ?>>
             <div class="col-md-12">
-            <h3>Riwayat perjalanan</h3>
+                <h3>Riwayat perjalanan</h3>
                 <div class="card">
                     <div class="card-body">
                         <div id="content">
                             <ul class="timeline">
-                            <?php
+                                <?php
                                 while ($item = mysqli_fetch_array($data)) {
                                 ?>
-                                    <li class="event" data-date="<?php echo $item['timestamp']; ?>">
-                                        <h3><?php echo $item['pegawai_before']; ?> → <?php echo $item['pegawai_after']; ?></h3>
-                                        <p>Catatan : <?php echo $item['catatan']; ?></p>
-                                    </li>
+                                <li class="event" data-date="<?php echo $item['timestamp']; ?>">
+                                    <h3><?php echo $item['pegawai_before']; ?> → <?php echo $item['pegawai_after']; ?>
+                                    </h3>
+                                    <p>Catatan : <?php echo $item['catatan']; ?></p>
+                                </li>
                                 <?php
                                 }
                                 ?>

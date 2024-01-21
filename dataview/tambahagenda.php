@@ -33,7 +33,7 @@ if (isset($_POST["tambah"])) {
 <body>
     <button class="btn btn-outline-secondary btn-sm" onclick="history.back()"><i
             class='bx bx-arrow-back'></i></button><br><br>
-    <form action="" method="post">
+    <form action="" method="post" enctype="multipart/form-data">
         <div class="mb-3">
             <label for="exampleFormControlInput1" class="form-label">NAMA PIMPINAN</label>
             <select name="nik_pegawai" class="form-select" aria-label="Default select example" required>

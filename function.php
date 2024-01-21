@@ -42,6 +42,7 @@ function registrasi($data)
 function tambahagenda($data)
 {
     global $conn;
+    $file_undangan = uploadFileUndangan();
     $id = date("mYdhis");
     $nik_pegawai = $data['nik_pegawai'];
     $judul = $data['judul'];
@@ -52,37 +53,47 @@ function tambahagenda($data)
     $pesan = $data['pesan'];
     date_default_timezone_set("Asia/Makassar");
     $timestamp = date("Y-m-d - H:i");
-    $file_undangan = uploadFileUndangan();
 
-    // Hitung selisih hari antara tanggal sekarang dan tanggal input
-    $selisih_hari = ceil((strtotime($tanggal) - time()) / (60 * 60 * 24));
+    // Pengecekan apakah file undangan berhasil diunggah
+    if ($file_undangan !== null) {
+        // Hitung selisih hari antara tanggal sekarang dan tanggal input
+        $selisih_hari = ceil((strtotime($tanggal) - time()) / (60 * 60 * 24));
 
-    if ($selisih_hari < 3) {
-        $status = "Selesai";
-        // Tambahkan 3 hari ke tanggal selesai
-        $tanggal_selesai = date("Y-m-d");
-        $kesimpulan = "";
+        if ($selisih_hari >= 3) {
+            $status = "Selesai";
+            // Tambahkan 3 hari ke tanggal selesai
+            $tanggal_selesai = date("Y-m-d");
+            $kesimpulan = "";
+        } else {
+            $status = "Diajukan";
+            $tanggal_selesai = null; // Tidak ada tanggal selesai jika status masih "Diajukan"
+            $kesimpulan = "";
+        }
+
+
+        mysqli_query($conn, "INSERT INTO agenda (id_agenda, nik_pegawai, judul, deskripsi, tanggal, lokasi, file_undangan, status, timestamp) VALUES ('$id', '$nik_pegawai', '$judul', '$deskripsi', '$tanggal', '$lokasi', '$file_undangan', '$status', '$timestamp')");
+
+        mysqli_query($conn, "insert into permohonan values(NULL, '$id', '$nik_pegawai', '$pesan')");
+        mysqli_query($conn, "insert into undangan values(NULL, '$id', '$nik_pegawai')");
+
+        mysqli_query($conn, "INSERT INTO hasil (id_agenda, tanggal_selesai, kesimpulan) VALUES ('$id', '$tanggal_selesai', '$kesimpulan')");
+
+        return mysqli_affected_rows($conn);
     } else {
-        $status = "Diajukan";
-        $tanggal_selesai = null; // Tidak ada tanggal selesai jika status masih "Diajukan"
-        $kesimpulan = "";
+        // File undangan gagal diunggah, Anda dapat menangani kesalahan di sini
+        echo "File undangan gagal diunggah.";
+        return 0; // Atau return sesuai kebutuhan Anda jika terjadi kesalahan
     }
-
-    // Handle unggah file undangan
-    $file_undangan = uploadFileUndangan(); // Fungsi untuk mengelola unggahan file, lihat catatan di bawah
-
-    mysqli_query($conn, "INSERT INTO agenda VALUES('$id', '$nik_pegawai', '$judul', '$deskripsi', '$tanggal', '$lokasi', '$status', '$timestamp', '$tanggal_selesai', '$kesimpulan', '$file_undangan')");
-    mysqli_query($conn, "insert into permohonan values(NULL, '$id', '$nik_pegawai', '$pesan')");
-    mysqli_query($conn, "insert into undangan values(NULL, '$id', '$nik_pegawai')");
-
-    mysqli_query($conn, "INSERT INTO hasil (id_agenda, tanggal_selesai, kesimpulan) VALUES ('$id', '$tanggal_selesai', '$kesimpulan')");
-
-    return mysqli_affected_rows($conn);
 }
 
 function uploadFileUndangan()
 {
-    $targetDir = "uploads/"; // Direktori untuk menyimpan file undangan (pastikan direktori ini sudah ada)
+    $targetDir = "../assets/uploads/";
+
+    // Buat direktori jika belum ada
+    if (!file_exists($targetDir)) {
+        mkdir($targetDir, 0777, true);
+    } // Direktori untuk menyimpan file undangan (pastikan direktori ini sudah ada)
     $targetFile = $targetDir . basename($_FILES["file_undangan"]["name"]);
     $uploadOk = 1;
     $fileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
@@ -92,6 +103,10 @@ function uploadFileUndangan()
         echo "File harus berupa gambar atau PDF.";
         $uploadOk = 0;
     }
+
+    // Generate nama file yang unik
+    $uniqueFileName = md5(uniqid(rand(), true)) . '.' . $fileType;
+    $targetFile = $targetDir . $uniqueFileName;
 
     // Check file size
     if ($_FILES["file_undangan"]["size"] > 5000000) {
