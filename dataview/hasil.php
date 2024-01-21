@@ -1,4 +1,5 @@
-<?php ob_start(); $page = "hasil";
+<?php ob_start();
+$page = "hasil";
 include 'header.php';
 
 require '../function.php';
@@ -24,34 +25,33 @@ if (isset($_GET["id_agenda"])) {
         <h3>HASIL RAPAT</h3>
     </div>
     <div class="table-responsive">
-    <table id="example" class="table table-striped border-light-subtle">
-        <thead>
-            <tr>
-                <th>JUDUL AGENDA</th>
-                <th>PIMPINAN YANG BERHADIR</th>
-                <th>TANGGAL SELESAI</th>
-                <th>KESIMPULAN</th>
-                <th>AKSI</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            <?php
-            $data = mysqli_query($conn, "select hasil.*, agenda.judul, agenda.nik_pegawai, pegawai.nama from hasil INNER JOIN agenda ON hasil.id_agenda = agenda.id_agenda INNER JOIN pegawai ON agenda.nik_pegawai = pegawai.nik");
-
-            while ($row = mysqli_fetch_array($data)) { ?>
+        <table id="example" class="table table-striped border-light-subtle">
+            <thead>
                 <tr>
-                    <td><?php echo $row['judul']; ?></td>
-                    <td><?php echo $row['nama']; ?></td>
-                    <td><?php echo $row['tanggal_selesai']; ?></td>
-                    <td><?php echo $row['kesimpulan']; ?></td>
-                    <td><a href="?page=detailagenda&id_agenda=<?php echo $row['id_agenda']; ?>" class="btn btn-sm btn-primary"><i class='bx bx-detail nav_icon'></i></a> 
-                    <a href="?page=agenda&id_agenda=<?php echo $row['id_agenda']; ?>" class="btn btn-sm btn-danger btn-delet"><i class='bx bx-trash nav_icon'></i></a>
+                    <th>JUDUL AGENDA</th>
+                    <th>PIMPINAN YANG BERHADIR</th>
+                    <th>TANGGAL SELESAI</th>
+                    <th>KESIMPULAN</th>
+                    <th>AKSI</th>
                 </tr>
-            <?php }
-            ?>
-        </tbody>
-    </table>
+            </thead>
+
+            <tbody>
+                <?php
+                $data = mysqli_query($conn, "select hasil.*, agenda.judul, agenda.nik_pegawai, pegawai.nama from hasil INNER JOIN agenda ON hasil.id_agenda = agenda.id_agenda INNER JOIN pegawai ON agenda.nik_pegawai = pegawai.nik");
+                while ($row = mysqli_fetch_array($data)) { ?>
+                    <tr>
+                        <td><?php echo $row['judul']; ?></td>
+                        <td><?php echo $row['nama']; ?></td>
+                        <td><?php echo $row['tanggal_selesai']; ?></td>
+                        <td><?php echo $row['kesimpulan']; ?></td>
+                        <td><a href="?page=detailagenda&id_agenda=<?php echo $row['id_agenda']; ?>" class="btn btn-sm btn-primary"><i class='bx bx-detail nav_icon'></i></a>
+                            <a href="?page=agenda&id_agenda=<?php echo $row['id_agenda']; ?>" class="btn btn-sm btn-danger btn-delet"><i class='bx bx-trash nav_icon'></i></a>
+                    </tr>
+                <?php }
+                ?>
+            </tbody>
+        </table>
     </div>
 </body>
 

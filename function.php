@@ -59,7 +59,7 @@ function tambahagenda($data)
         // Hitung selisih hari antara tanggal sekarang dan tanggal input
         $selisih_hari = ceil((strtotime($tanggal) - time()) / (60 * 60 * 24));
 
-        if ($selisih_hari >= 3) {
+        if ($selisih_hari <= 3) {
             $status = "Selesai";
             // Tambahkan 3 hari ke tanggal selesai
             $tanggal_selesai = date("Y-m-d");
@@ -93,20 +93,21 @@ function uploadFileUndangan()
     // Buat direktori jika belum ada
     if (!file_exists($targetDir)) {
         mkdir($targetDir, 0777, true);
-    } // Direktori untuk menyimpan file undangan (pastikan direktori ini sudah ada)
-    $targetFile = $targetDir . basename($_FILES["file_undangan"]["name"]);
+    }
+
+    $fileType = strtolower(pathinfo($_FILES["file_undangan"]["name"], PATHINFO_EXTENSION));
+
+    // Generate nama file yang unik
+    $uniqueFileName = md5(uniqid(rand(), true)) . '.' . $fileType;
+    $targetFile = $targetDir . $uniqueFileName;
+
     $uploadOk = 1;
-    $fileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
 
     // Check if file is a valid image or PDF
     if ($fileType != "pdf" && !getimagesize($_FILES["file_undangan"]["tmp_name"])) {
         echo "File harus berupa gambar atau PDF.";
         $uploadOk = 0;
     }
-
-    // Generate nama file yang unik
-    $uniqueFileName = md5(uniqid(rand(), true)) . '.' . $fileType;
-    $targetFile = $targetDir . $uniqueFileName;
 
     // Check file size
     if ($_FILES["file_undangan"]["size"] > 5000000) {
@@ -117,11 +118,12 @@ function uploadFileUndangan()
     // Upload file jika semua valid
     if ($uploadOk == 1) {
         move_uploaded_file($_FILES["file_undangan"]["tmp_name"], $targetFile);
-        return $targetFile;
+        return $uniqueFileName; // Mengembalikan nama file unik
     } else {
         return null; // Mengembalikan null jika upload gagal
     }
 }
+
 function deleteagenda($data)
 {
     global $conn;

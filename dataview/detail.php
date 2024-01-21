@@ -38,7 +38,8 @@ if (isset($_GET["id_agenda"])) {
 
 <body>
     <div class="container">
-        <button class="btn btn-outline-secondary btn-sm" onclick="history.back()"><i class='bx bx-arrow-back'></i></button><br><br>
+        <button class="btn btn-outline-secondary btn-sm" onclick="history.back()"><i
+                class='bx bx-arrow-back'></i></button><br><br>
         <div class="text-center">
             <h3>DETAIL AGENDA</h3>
         </div><br>
@@ -75,11 +76,10 @@ if (isset($_GET["id_agenda"])) {
                 <th>FILE UNDANGAN</th>
                 <td>
                     <?php if ($k['file_undangan']) : ?>
-                        <a href="<?php echo $k['file_undangan']; ?>" target="_blank">
-                            <button class="btn btn-primary btn-sm">View PDF</button>
-                        </a>
+                    <a href="detailview.php?id_agenda=<?php echo $k['id_agenda']; ?>&action=view"
+                        class="btn btn-primary btn-sm" target="_blank" onclick="changePageTitle">View</a>
                     <?php else : ?>
-                        Tidak ada file undangan.
+                    Tidak ada file undangan.
                     <?php endif; ?>
                 </td>
             </tr>
@@ -114,11 +114,11 @@ if (isset($_GET["id_agenda"])) {
                                 <?php
                                 while ($item = mysqli_fetch_array($data)) {
                                 ?>
-                                    <li class="event" data-date="<?php echo $item['timestamp']; ?>">
-                                        <h3><?php echo $item['pegawai_before']; ?> → <?php echo $item['pegawai_after']; ?>
-                                        </h3>
-                                        <p>Catatan : <?php echo $item['catatan']; ?></p>
-                                    </li>
+                                <li class="event" data-date="<?php echo $item['timestamp']; ?>">
+                                    <h3><?php echo $item['pegawai_before']; ?> → <?php echo $item['pegawai_after']; ?>
+                                    </h3>
+                                    <p>Catatan : <?php echo $item['catatan']; ?></p>
+                                </li>
                                 <?php
                                 }
                                 ?>

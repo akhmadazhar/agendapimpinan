@@ -61,15 +61,14 @@ if (isset($_GET["id_agenda"])) {
                 //$dataa = mysqli_query($conn, "select *, pegawai.nama from agenda INNER JOIN pegawai ON agenda.nik_pegawai = pegawai.nik where nik_pegawai='$user' and status='Dilaksanakan'");
                 $data = mysqli_query($conn, "select *, agenda.*, pegawai.nama from undangan INNER JOIN agenda ON undangan.id_agenda = agenda.id_agenda INNER JOIN pegawai ON undangan.nik_pegawai = pegawai.nik where undangan.nik_pegawai='$user' and agenda.nik_pegawai!='$user' and status!='Selesai' or undangan.nik_pegawai='$user' and agenda.nik_pegawai='$user' and status='Dilaksanakan'");
                 while ($row = mysqli_fetch_array($data)) { ?>
-                <tr>
-                    <td><?php echo $row['id_agenda']; ?></td>
-                    <td><?php echo $row['judul']; ?></td>
-                    <td><?php echo $row['deskripsi']; ?></td>
-                    <td><?php echo $row['tanggal']; ?></td>
-                    <td><?php echo $row['status']; ?></td>
-                    <td><a href="?page=detailagenda&id_agenda=<?php echo $row['id_agenda']; ?>"
-                            class="btn btn-sm btn-primary">Detail</a>
-                </tr>
+                    <tr>
+                        <td><?php echo $row['id_agenda']; ?></td>
+                        <td><?php echo $row['judul']; ?></td>
+                        <td><?php echo $row['deskripsi']; ?></td>
+                        <td><?php echo $row['tanggal']; ?></td>
+                        <td><?php echo $row['status']; ?></td>
+                        <td><a href="?page=detailagenda&id_agenda=<?php echo $row['id_agenda']; ?>" class="btn btn-sm btn-primary">Detail</a>
+                    </tr>
                 <?php }
                 ?>
             </tbody>
@@ -84,59 +83,79 @@ if (isset($_GET["id_agenda"])) {
 </body>
 
 <script>
-function filterStatus(status) {
-    var table = $('#example').DataTable();
+    function filterStatus(status) {
+        var table = $('#example').DataTable();
 
-    // Reset semua filter sebelumnya
-    table.columns().search('').draw();
+        // Reset semua filter sebelumnya
+        table.columns().search('').draw();
 
-    if (status !== '') {
-        table.column(4).search(status).draw();
+        if (status !== '') {
+            table.column(4).search(status).draw();
+        }
     }
-}
 
-let mode = 1;
-$("#the-table").show();
-$("#the-calendar").hide();
+    let mode = 1;
+    $("#the-table").show();
+    $("#the-calendar").hide();
 
-function show() {
+    function show() {
 
-    if (mode == 1) {
-        $("#the-calendar").show();
-        $("#the-table").hide();
-        mode = 2;
-    } else {
-        $("#the-calendar").hide();
-        $("#the-table").show();
-        mode = 1;
+        if (mode == 1) {
+            $("#the-calendar").show();
+            $("#the-table").hide();
+            mode = 2;
+        } else {
+            $("#the-calendar").hide();
+            $("#the-table").show();
+            mode = 1;
+        }
     }
-}
 
-$(document).ready(function() {
-    $('#calendar').fullCalendar({
-        header: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'month,agendaWeek,agendaDay'
-        },
-        defaultView: 'month',
-        editable: false,
-        events: [
-            <?php
-                $data = mysqli_query($conn, "select *, agenda.*, pegawai.nama from undangan INNER JOIN agenda ON undangan.id_agenda = agenda.id_agenda INNER JOIN pegawai ON undangan.nik_pegawai = pegawai.nik where undangan.nik_pegawai='$user' and agenda.nik_pegawai!='$user' and status!='Selesai' or undangan.nik_pegawai='$user' and agenda.nik_pegawai='$user' and status='Dilaksanakan'");
+    $(document).ready(function() {
+        $('#calendar').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaWeek,agendaDay'
+            },
+            defaultView: 'month',
+            editable: false,
+            events: [
+                <?php
+                $data = mysqli_query($conn, "SELECT *, agenda.*, pegawai.nama FROM undangan 
+                INNER JOIN agenda ON undangan.id_agenda = agenda.id_agenda 
+                INNER JOIN pegawai ON undangan.nik_pegawai = pegawai.nik 
+                WHERE (undangan.nik_pegawai = '$user' AND agenda.nik_pegawai != '$user') OR (undangan.nik_pegawai = '$user' AND agenda.nik_pegawai = '$user')
+            ");
 
                 while ($k = mysqli_fetch_array($data)) {
                     $title = $k['judul'];
-                    $start = $k['tanggal']; // This should be a valid date format (e.g., '2023-11-03').
+                    $start = $k['tanggal'];
+                    $status = $k['status'];
+
+                    // Tentukan warna berdasarkan status
+                    switch ($status) {
+                        case 'Selesai':
+                            $color = 'green';
+                            break;
+                        case 'Diajukan':
+                            $color = 'red';
+                            break;
+                        default:
+                            $color = 'blue';
+                            break;
+                    }
+
                 ?> {
-                title: '<?php echo $title; ?>',
-                start: '<?php echo $start; ?>',
-                url: "?page=detailagenda&id_agenda='<?php echo $k['id_agenda']; ?>'" // Optional, if you want to link to details.
-            },
-            <?php } ?>
-        ]
+                        title: '<?php echo $title; ?>',
+                        start: '<?php echo $start; ?>',
+                        url: "?page=detailagenda&id_agenda=<?php echo $k['id_agenda']; ?>",
+                        color: '<?php echo $color; ?>'
+                    },
+                <?php } ?>
+            ],
+        });
     });
-});
 </script>
 
 </html>
